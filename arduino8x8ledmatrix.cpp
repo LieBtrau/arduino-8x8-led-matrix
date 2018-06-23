@@ -4,10 +4,11 @@
 static Arduino8x8LedMatrix *activePanel = nullptr;
 static void update();
 
-Arduino8x8LedMatrix::Arduino8x8LedMatrix(byte modulesHorizontal, byte modulesVertical, byte ssPin, bool dbuf):
+Arduino8x8LedMatrix::Arduino8x8LedMatrix(byte modulesHorizontal, byte modulesVertical, byte ssPin, byte dimmingPin, bool dbuf):
     _modHor(modulesHorizontal),
     _modVer(modulesVertical),
     _SSpin(ssPin),
+    _dimmingPin(dimmingPin),
     Adafruit_GFX(modulesHorizontal<<3, modulesVertical<<3)
 {
     // Allocate and initialize matrix buffer:
@@ -25,6 +26,7 @@ void Arduino8x8LedMatrix::begin(void)
 {
     backindex   = 0;                         // Back buffer
     pinMode(_SSpin, OUTPUT);
+    pinMode(_dimmingPin, PWM);
     SPI.begin();
     activePanel = this;                      // For interrupt hander
 #ifdef ARDUINO_ARCH_AVR
@@ -40,7 +42,7 @@ void Arduino8x8LedMatrix::begin(void)
     Timer2.setCompare(TIMER_CH1, 1);      // overflow might be small
     Timer2.attachInterrupt(TIMER_CH1, update);
 #endif
-    fillscreen(BLACK);
+    fillScreen(BLACK);
 }
 
 void Arduino8x8LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t c)
@@ -50,12 +52,12 @@ void Arduino8x8LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t c)
     bitWrite(matrixbuff[backindex][ byteOffset], x & 7, c);
 }
 
-void Arduino8x8LedMatrix::fillscreen(word c)
+void Arduino8x8LedMatrix::fillScreen(word c)
 {
     memset(matrixbuff[backindex], c==BLACK ? 0xFF : 0x00, _videoBufSize);
 }
 
-void Arduino8x8LedMatrix::swapBuffers(boolean copy)
+void Arduino8x8LedMatrix::swapBuffers(bool copy)
 {
     if(matrixbuff[0] == matrixbuff[1])
     {
@@ -69,6 +71,11 @@ void Arduino8x8LedMatrix::swapBuffers(boolean copy)
     {
         memcpy(matrixbuff[backindex], matrixbuff[1-backindex], _videoBufSize);
     }
+}
+
+void Arduino8x8LedMatrix::setBrightness(word brightness)
+{
+    pwmWrite(_dimmingPin, brightness);
 }
 
 

@@ -2,3 +2,4 @@
 /home/ctack/Arduino/libraries/Adafruit_GFX_Library
 
 ../examples/DrawPixel
+../examples/BreathingArray
