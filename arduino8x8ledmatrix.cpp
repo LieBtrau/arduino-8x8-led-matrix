@@ -17,7 +17,6 @@ Arduino8x8LedMatrix::Arduino8x8LedMatrix(byte modulesHorizontal, byte modulesVer
     {
         return;
     }
-    memset(matrixbuff[0], 0, allocsize);
     // If not double-buffered, both buffers then point to the same address:
     matrixbuff[1] = dbuf ? &matrixbuff[0][_videoBufSize] : matrixbuff[0];
 }
@@ -25,6 +24,7 @@ Arduino8x8LedMatrix::Arduino8x8LedMatrix(byte modulesHorizontal, byte modulesVer
 void Arduino8x8LedMatrix::begin(void)
 {
     backindex   = 0;                         // Back buffer
+    pinMode(_SSpin, OUTPUT);
     SPI.begin();
     activePanel = this;                      // For interrupt hander
 #ifdef ARDUINO_ARCH_AVR
@@ -36,7 +36,7 @@ void Arduino8x8LedMatrix::begin(void)
     sei();                // Enable global interrupts
 #elif ARDUINO_ARCH_STM32F1
     Timer2.setChannel1Mode(TIMER_OUTPUTCOMPARE);
-    Timer2.setPeriod(100); // in microseconds
+    Timer2.setPeriod(1000); // in microseconds
     Timer2.setCompare(TIMER_CH1, 1);      // overflow might be small
     Timer2.attachInterrupt(TIMER_CH1, update);
 #endif
@@ -46,12 +46,13 @@ void Arduino8x8LedMatrix::begin(void)
 void Arduino8x8LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t c)
 {
     if ((x < 0) || (x >= _width) || (y < 0) || (y >= _width)) return;
-    bitWrite(matrixbuff[backindex][ (y>>3) * _modHor + ((y>>3) & 1 ? _modHor-1-(x>>3) : x>>3)<<3 + (y & 7)], x & 7, c);
+    word byteOffset=(y>>3) * _modHor + (((y>>3) & 1 ? _modHor-1-(x>>3) : x>>3)<<3) + (y & 7);
+    bitWrite(matrixbuff[backindex][ byteOffset], x & 7, c);
 }
 
 void Arduino8x8LedMatrix::fillscreen(word c)
 {
-    memset(matrixbuff[backindex], _videoBufSize, c);
+    memset(matrixbuff[backindex], c==BLACK ? 0xFF : 0x00, _videoBufSize);
 }
 
 void Arduino8x8LedMatrix::swapBuffers(boolean copy)
@@ -84,12 +85,12 @@ void Arduino8x8LedMatrix::updateDisplay()
     digitalWrite(_SSpin, LOW);
     for (byte i = _row & 7; i < _videoBufSize; i+=8)
     {
-        SPI.transfer(rowIndex);
         SPI.transfer(buffptr[i]);
+        SPI.transfer(rowIndex);
     }
     digitalWrite(_SSpin, HIGH);
-    _row++;
     SPI.endTransaction();
+    _row++;
 }
 
 // -------------------- Interrupt handler stuff --------------------
@@ -105,4 +106,12 @@ void update()
     activePanel->updateDisplay();   // Call refresh func for active display
 }
 
-
+void Arduino8x8LedMatrix::printBuffer()
+{
+    for(int i=0;i<8;i++)
+    {
+        Serial.print(matrixbuff[backindex][i], HEX);
+        Serial.print(" ");
+    }
+    Serial.println();
+}

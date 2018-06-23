@@ -9,8 +9,8 @@ class Arduino8x8LedMatrix : public Adafruit_GFX
 public:
     typedef enum
     {
-      BLACK = 0,
-      RED
+        RED = 0,        //active low LED array
+        BLACK = 1
     } COLOR;
     Arduino8x8LedMatrix(byte modulesHorizontal, byte modulesVertical, byte ssPin, bool dbuf);
     void begin();
@@ -20,6 +20,7 @@ public:
     void swapBuffers(boolean);
     byte* *backBuffer(void);
 private:
+    void printBuffer();
     byte _modHor=0;
     byte _modVer=0;
     byte _row=0;

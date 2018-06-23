@@ -15,16 +15,22 @@ Arduino8x8LedMatrix matrix(1,1,10, false);
 const char str[] PROGMEM = "Adafruit 16x32 RGB LED Matrix";
 
 void setup() {
+    Serial.begin(9600);
+    while(!Serial)
+    {
+
+    }
+    Serial.println("started");
     matrix.begin();
     matrix.setTextWrap(false); // Allow text to run off right edge
     matrix.setTextSize(1);
     matrix.setTextColor(matrix.RED);
-    matrix.drawLine(0,0,79,6,matrix.RED);
-    matrix.drawCircle(40, 3, 3, matrix.RED);
+    //matrix.drawLine(0,0,7,7,matrix.RED);
+    //matrix.drawCircle(40, 3, 3, matrix.RED);
     //matrix.setFont(&TomThumb);
     //matrix.setFont(&Tiny3x3a2pt7b);
-    matrix.setFont(&Picopixel);
-    matrix.drawChar(0, 7, 'a',matrix.RED, matrix.BLACK, 1);
+    //matrix.setFont(&Picopixel);
+    //matrix.drawChar(0, 7, 'a',matrix.RED, matrix.BLACK, 1);
 }
 
 void rotatingBar()
@@ -71,7 +77,7 @@ void counter()
     {
         ultime=millis();
         matrix.fillscreen(matrix.BLACK);
-        matrix.drawChar(7,4,'0'+ctr,matrix.RED, matrix.BLACK,1);
+        matrix.drawChar(2,0,'0'+ctr,matrix.RED, matrix.BLACK,1);
         ctr=ctr<9 ? ctr+1 : 0;
     }
 }
@@ -85,4 +91,3 @@ void loop() {
     //matrix.setCursor(0, 0);
     //matrix.print(F2(str));
 }
-
