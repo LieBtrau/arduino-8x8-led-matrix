@@ -2,3 +2,4 @@
 ../arduino8x8ledmatrix.cpp
 ../examples/DrawPixel/DrawPixel.ino
 ../examples/BreathingArray/BreathingArray.ino
+../examples/ShiftingSprite_on_2x1_Array/ShiftingSprite_on_2x1_Array.ino

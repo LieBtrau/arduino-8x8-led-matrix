@@ -27,6 +27,7 @@ void Arduino8x8LedMatrix::begin(void)
     backindex   = 0;                         // Back buffer
     pinMode(_SSpin, OUTPUT);
     pinMode(_dimmingPin, PWM);
+    setBrightness(0xFFFF);
     SPI.begin();
     activePanel = this;                      // For interrupt hander
 #ifdef ARDUINO_ARCH_AVR
@@ -48,7 +49,21 @@ void Arduino8x8LedMatrix::begin(void)
 void Arduino8x8LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t c)
 {
     if ((x < 0) || (x >= _width) || (y < 0) || (y >= _width)) return;
-    word byteOffset=(y>>3) * _modHor + (((y>>3) & 1 ? _modHor-1-(x>>3) : x>>3)<<3) + (y & 7);
+
+    //The LED modules are arranged in rows & columns.  There's a serpentine SPI chain that runs through all the
+    //LED modules.
+    //We have to take into account that the byte shifted in first, is meant for the last LED module in the chain.
+    //The complexity of the conversion is put in this function, so that the update routine, which will be run more
+    //often can be kept simple & efficient.
+    //
+    //Memory arrangement is as follows
+    //  MatrixBuf[0-7] = data for last module in the chain
+    //  MatrixBuf[8-15] = data for next to last module in the chain
+    //  ...
+
+    word arrayModuleRow = _modVer - 1 - (y>>3) * _modHor; //8 rows per module
+    word arrayModuleIndexInRow = (((y>>3) & 1 ? x>>3 : _modHor-1-(x>>3))<<3); //Serpentining
+    word byteOffset= arrayModuleRow + arrayModuleIndexInRow + (y & 7);
     bitWrite(matrixbuff[backindex][ byteOffset], x & 7, c);
 }
 
@@ -75,7 +90,7 @@ void Arduino8x8LedMatrix::swapBuffers(bool copy)
 
 void Arduino8x8LedMatrix::setBrightness(word brightness)
 {
-    pwmWrite(_dimmingPin, brightness);
+    pwmWrite(_dimmingPin, 0xFFFF-brightness);
 }
 
 
