@@ -12,7 +12,7 @@ public:
         RED = 0,        //active low LED array
         BLACK = 1
     } COLOR;
-    Arduino8x8LedMatrix(byte modulesHorizontal, byte modulesVertical, byte ssPin, byte dimmingPin, bool dbuf);
+    Arduino8x8LedMatrix(byte columnCount, byte rowCount, byte ssPin, byte dimmingPin, bool dbuf);
     void begin();
     void drawPixel(int16_t x, int16_t y, uint16_t c);
     void fillScreen(word c);
@@ -22,8 +22,8 @@ public:
     void setBrightness(word brightNess);
 private:
     void printBuffer();
-    byte _modHor=0;
-    byte _modVer=0;
+    byte _colCnt=0;
+    byte _rowCnt=0;
     byte _row=0;
     byte _SSpin=0;
     byte _dimmingPin=0;

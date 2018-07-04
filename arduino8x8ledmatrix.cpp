@@ -4,15 +4,15 @@
 static Arduino8x8LedMatrix *activePanel = nullptr;
 static void update();
 
-Arduino8x8LedMatrix::Arduino8x8LedMatrix(byte modulesHorizontal, byte modulesVertical, byte ssPin, byte dimmingPin, bool dbuf):
-    _modHor(modulesHorizontal),
-    _modVer(modulesVertical),
+Arduino8x8LedMatrix::Arduino8x8LedMatrix(byte columnCount, byte rowCount, byte ssPin, byte dimmingPin, bool dbuf):
+    _colCnt(columnCount),
+    _rowCnt(rowCount),
     _SSpin(ssPin),
     _dimmingPin(dimmingPin),
-    Adafruit_GFX(modulesHorizontal<<3, modulesVertical<<3)
+    Adafruit_GFX(columnCount<<3, rowCount<<3)
 {
     // Allocate and initialize matrix buffer:
-    _videoBufSize = (modulesHorizontal * modulesVertical) << 3;
+    _videoBufSize = (columnCount * rowCount) << 3;
     int allocsize = _videoBufSize << (dbuf ? 1 : 0);
     if((matrixbuff[0] = (byte *)malloc(allocsize))==nullptr)
     {
@@ -48,7 +48,7 @@ void Arduino8x8LedMatrix::begin(void)
 
 void Arduino8x8LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t c)
 {
-    if ((x < 0) || (x >= _width) || (y < 0) || (y >= _width)) return;
+    if ((x < 0) || (x >= _width) || (y < 0) || (y >= _height)) return;
 
     //The LED modules are arranged in rows & columns.  There's a serpentine SPI chain that runs through all the
     //LED modules.
@@ -61,10 +61,17 @@ void Arduino8x8LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t c)
     //  MatrixBuf[8-15] = data for next to last module in the chain
     //  ...
 
-    word arrayModuleRow = _modVer - 1 - (y>>3) * _modHor; //8 rows per module
-    word arrayModuleIndexInRow = (((y>>3) & 1 ? x>>3 : _modHor-1-(x>>3))<<3); //Serpentining
-    word byteOffset= arrayModuleRow + arrayModuleIndexInRow + (y & 7);
+    //Calculate the row and column of the LED module that must be addressed
+    word row = _rowCnt - 1 - (y>>3) * _colCnt; //8 rows in a module
+    word col = row & 1 ? x>>3 : _colCnt-1-(x>>3); //Serpentining
+
+    //Convert the row & column to a byte offset in the matrixBuff
+    word byteOffset = ((row * _colCnt + col)<<3) + (y & 7);
+
+    //Select the correct row of the module and set the bit corresponding to the requested column
     bitWrite(matrixbuff[backindex][ byteOffset], x & 7, c);
+
+    //Efficiency could be increased by leaving away with the >>3 & <<3.
 }
 
 void Arduino8x8LedMatrix::fillScreen(word c)

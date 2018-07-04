@@ -41,6 +41,7 @@ void counter()
         ultime=millis();
         matrix.fillScreen(matrix.BLACK);
         matrix.drawChar(6,0,'0'+ctr,matrix.RED, matrix.BLACK,1);
+        //matrix.drawPixel(ctr,2,matrix.RED);
         ctr=ctr<9 ? ctr+1 : 0;
         Serial.println(ctr);
     }
