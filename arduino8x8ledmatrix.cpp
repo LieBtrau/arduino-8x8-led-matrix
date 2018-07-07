@@ -62,16 +62,14 @@ void Arduino8x8LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t c)
     //  ...
 
     //Calculate the row and column of the LED module that must be addressed
-    word row = _rowCnt - 1 - (y>>3) * _colCnt; //8 rows in a module
-    word col = row & 1 ? x>>3 : _colCnt-1-(x>>3); //Serpentining
+    word revRow = (_rowCnt -1) - (y>>3); //8 rows in a module
+    word revCol = bitRead(y>>3,0) ? x>>3 : (_colCnt-1) - (x>>3); //Serpentining
 
     //Convert the row & column to a byte offset in the matrixBuff
-    word byteOffset = ((row * _colCnt + col)<<3) + (y & 7);
+    word byteOffset = ((revRow * _colCnt + revCol)<<3) + (y & 7);
 
     //Select the correct row of the module and set the bit corresponding to the requested column
     bitWrite(matrixbuff[backindex][ byteOffset], x & 7, c);
-
-    //Efficiency could be increased by leaving away with the >>3 & <<3.
 }
 
 void Arduino8x8LedMatrix::fillScreen(word c)
