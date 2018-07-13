@@ -5,3 +5,7 @@
 ../examples/ShiftingSprite_on_2x1_Array/ShiftingSprite_on_2x1_Array.ino
 ../examples/ShiftingSprite_on_1x2_Array/ShiftingSprite_on_1x2_Array.ino
 ../examples/ShiftingSprite_on_2x2_Array/ShiftingSprite_on_2x2_Array.ino
+../examples/MorphSprite/MorphSprite.ino
+../examples/MorphSprite/sprites.h
+../examples/MorphSprite/morphbitmap.h
+../examples/MorphSprite/morphbitmap.cpp
