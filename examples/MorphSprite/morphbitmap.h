@@ -15,10 +15,17 @@ class MorphBitmap
 public:
     MorphBitmap(int maxPixelsPerBitmap);
     ~MorphBitmap();
+    typedef enum
+    {
+        ONE_TO_ONE,
+        REVERSE,
+        MAX_MODE
+    }MORPHMODE;
     bool startMorph(const byte* srcBitMap, const byte* dstBitMap, byte width, byte height);
     //make sure dstBitMap continues to exist during morphing, this function doesn't make a local copy.
     //steps is number of intermediates steps to morph srcBitmap into dstBitmap
     bool getNextStep(byte* morphBitmap, byte curStep, byte maxSteps);
+    void setMorphMode(MORPHMODE mm);
 private:
     typedef struct
     {
@@ -33,4 +40,5 @@ private:
     byte _width;
     byte _height;
     byte _steps=0;
+    MORPHMODE _morphMode;
 };

@@ -6,7 +6,7 @@
 const int pwmPin=6; //doesn't work with pin 9 on STM32 Nucleo
 Arduino8x8LedMatrix matrix(2,2,10, pwmPin, false);
 MorphBitmap bmp(256);
-byte morphBmp[8];
+byte morphBmp[32];
 byte charA[8];
 byte charB[8];
 
@@ -21,8 +21,6 @@ void setup()
     matrix.begin();
     bmp.startMorph(test[0],test[1],8,8);
     matrix.fillScreen(matrix.BLACK);
-    char2bitMap('1',morphBmp);
-    matrix.drawBitmap(0,0, morphBmp, 8, 8, matrix.RED);
 }
 
 void showMorph()
@@ -30,7 +28,7 @@ void showMorph()
     static unsigned long ulTimer=0;
     static byte state=0;
     static byte item=0;
-    const byte maxSteps=8;
+    const byte maxSteps=25;
     if(millis()>ulTimer+150)
     {
         ulTimer=millis();
@@ -95,6 +93,7 @@ void showMorphChars()
 
 void loop()
 {
+    //showMorph();
     showMorphChars();
 }
 

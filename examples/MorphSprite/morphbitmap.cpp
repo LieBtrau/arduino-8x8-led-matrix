@@ -39,6 +39,14 @@ bool MorphBitmap::startMorph(const byte* srcBitMap, const byte *dstBitMap, byte 
     return true;
 }
 
+void MorphBitmap::setMorphMode(MORPHMODE mm)
+{
+    if(mm<MAX_MODE)
+    {
+        _morphMode=mm;
+    }
+}
+
 int MorphBitmap::buildPixelCoordinateList(const byte *bitmap, BITMAP* bmp)
 {
     bmp->bitmap=(byte*)bitmap;
@@ -47,7 +55,7 @@ int MorphBitmap::buildPixelCoordinateList(const byte *bitmap, BITMAP* bmp)
     {
         for(byte col=0;col<_width;col++)
         {
-            if(bitRead(bitmap[row<<((_width-1)>>3)+(col>>3)],col))
+            if(bitRead(bitmap[(row<<((_width-1)>>3))+(col>>3)],7-(col & 0x7)))
             {
                 //higher nibble contains X-coordinate
                 //lower nibble contains Y-coordinate
@@ -61,12 +69,12 @@ int MorphBitmap::buildPixelCoordinateList(const byte *bitmap, BITMAP* bmp)
         }
     }
 
-    //    for(byte i=0;i<bmp->pixCnt;i++)
-    //    {
-    //        Serial.print(bmp->listPixXY[i], HEX);
-    //        Serial.print(" ");
-    //    }
-    //    Serial.println("\r\n----");
+//        for(byte i=0;i<bmp->pixCnt;i++)
+//        {
+//            Serial.print(bmp->listPixXY[i], HEX);
+//            Serial.print(" ");
+//        }
+//        Serial.println("\r\n----");
 
     return bmp->pixCnt;
 }
@@ -85,22 +93,26 @@ bool MorphBitmap::getNextStep(byte* morphBitmap, byte curStep, byte maxSteps)
     {
         iSrc = (_src.pixCnt==maxPixCnt ? i : (i*_src.pixCnt/maxPixCnt));
         iDst = (_dst.pixCnt==maxPixCnt ? i : (i*_dst.pixCnt/maxPixCnt));
-        iDst = _dst.pixCnt - 1 - iDst;
+        switch(_morphMode)
+        {
+        case ONE_TO_ONE:
+            iDst = iDst;
+        break;
+        case REVERSE:
+            iDst = _dst.pixCnt - 1 - iDst;
+            break;
+        default:
+        break;
+        }
         xSrc = _src.listPixXY[iSrc] & 0xF;
         ySrc = _src.listPixXY[iSrc] >> 4;
         xDst = _dst.listPixXY[iDst] & 0xF;
         yDst = _dst.listPixXY[iDst] >> 4;
 
-        morphX = xSrc + (xDst-xSrc) * curStep/maxSteps;
-        morphY = ySrc + (yDst-ySrc) * curStep/maxSteps;
-        bitSet(morphBitmap[morphY<<((_width-1)>>3)+(morphX>>3)],morphX & 0x7);
+        morphX = xSrc + ((xDst-xSrc) * curStep)/maxSteps;
+        morphY = ySrc + ((yDst-ySrc) * curStep)/maxSteps;
+        bitSet(morphBitmap[(morphY<<((_width-1)>>3))+(morphX>>3)], 7 - (morphX & 0x7));
     }
-
-//    for(byte j=0;j<_height;j++)
-//    {
-//        Serial.println(morphBitmap[j], HEX);
-//    }
-//    Serial.println();
     return true;
 }
 
