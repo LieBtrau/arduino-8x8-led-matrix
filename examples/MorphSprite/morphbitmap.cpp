@@ -69,20 +69,20 @@ int MorphBitmap::buildPixelCoordinateList(const byte *bitmap, BITMAP* bmp)
         }
     }
 
-//        for(byte i=0;i<bmp->pixCnt;i++)
-//        {
-//            Serial.print(bmp->listPixXY[i], HEX);
-//            Serial.print(" ");
-//        }
-//        Serial.println("\r\n----");
+    //        for(byte i=0;i<bmp->pixCnt;i++)
+    //        {
+    //            Serial.print(bmp->listPixXY[i], HEX);
+    //            Serial.print(" ");
+    //        }
+    //        Serial.println("\r\n----");
 
     return bmp->pixCnt;
 }
 
-int iSrc, iDst, xSrc, ySrc, xDst, yDst, morphX, morphY;
 
 bool MorphBitmap::getNextStep(byte* morphBitmap, byte curStep, byte maxSteps)
 {
+    int iSrc, iDst, xSrc, ySrc, xDst, yDst, morphX, morphY;
     if(curStep>maxSteps)
     {
         return false;
@@ -93,19 +93,22 @@ bool MorphBitmap::getNextStep(byte* morphBitmap, byte curStep, byte maxSteps)
     {
         iSrc = (_src.pixCnt==maxPixCnt ? i : (i*_src.pixCnt/maxPixCnt));
         iDst = (_dst.pixCnt==maxPixCnt ? i : (i*_dst.pixCnt/maxPixCnt));
+        xSrc = _src.listPixXY[iSrc] & 0xF;
+        ySrc = _src.listPixXY[iSrc] >> 4;
         switch(_morphMode)
         {
         case ONE_TO_ONE:
             iDst = iDst;
-        break;
+            break;
         case REVERSE:
             iDst = _dst.pixCnt - 1 - iDst;
             break;
+        case NEAREST:
+            getNearestPixel(i);
+            break;
         default:
-        break;
+            break;
         }
-        xSrc = _src.listPixXY[iSrc] & 0xF;
-        ySrc = _src.listPixXY[iSrc] >> 4;
         xDst = _dst.listPixXY[iDst] & 0xF;
         yDst = _dst.listPixXY[iDst] >> 4;
 
@@ -116,3 +119,24 @@ bool MorphBitmap::getNextStep(byte* morphBitmap, byte curStep, byte maxSteps)
     return true;
 }
 
+void MorphBitmap::getNearestPixel(int index)
+{
+    int maxDistance=_width*_width + _height * _height;
+    int maxIndex=0;
+    int maxPixCnt=max(_src.pixCnt, _dst.pixCnt);
+    for(int i=index;i<maxPixCnt;i++)
+    {
+        int iDst = (_dst.pixCnt==maxPixCnt ? i : (i*_dst.pixCnt/maxPixCnt));
+        int dx = (_dst.listPixXY[iDst] & 0xF) - (_src.listPixXY[index] & 0xF);
+        int dy = (_dst.listPixXY[iDst] >> 4) - (_src.listPixXY[index] >> 4);
+        int distance = dx*dx + dy*dy;
+        if(distance < maxDistance)
+        {
+            maxDistance = distance;
+            maxIndex=i;
+        }
+    }
+    int tempIndex=_dst.listPixXY[index*_dst.pixCnt/maxPixCnt];
+    _dst.listPixXY[index*_dst.pixCnt/maxPixCnt]=_dst.listPixXY[maxIndex*_dst.pixCnt/maxPixCnt];
+    _dst.listPixXY[maxIndex*_dst.pixCnt/maxPixCnt]=tempIndex;
+}

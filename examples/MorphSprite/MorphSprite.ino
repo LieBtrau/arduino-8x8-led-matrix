@@ -20,6 +20,7 @@ void setup()
     Serial.println("started");
     matrix.begin();
     bmp.startMorph(test[0],test[1],8,8);
+    bmp.setMorphMode(MorphBitmap::NEAREST);
     matrix.fillScreen(matrix.BLACK);
 }
 
@@ -86,7 +87,7 @@ void showMorphChars()
         ulTimer=millis();
         bmp.getNextStep(morphBmp, state, maxSteps);
         matrix.fillScreen(matrix.BLACK);
-        matrix.drawBitmap(0,0, morphBmp, 8, 8, matrix.RED);
+        matrix.drawBitmap(4,4, morphBmp, 8, 8, matrix.RED);
         state=(state==maxSteps+1?0:state+1);
     }
 }

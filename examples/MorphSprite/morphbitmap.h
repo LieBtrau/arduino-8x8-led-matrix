@@ -19,6 +19,7 @@ public:
     {
         ONE_TO_ONE,
         REVERSE,
+        NEAREST,
         MAX_MODE
     }MORPHMODE;
     bool startMorph(const byte* srcBitMap, const byte* dstBitMap, byte width, byte height);
@@ -34,6 +35,7 @@ private:
        int pixCnt=0;
     }BITMAP;
     int buildPixelCoordinateList(const byte* bitmap, BITMAP* bmp);
+    void getNearestPixel(int index);
     int _maxPixelsPerBitmap;
     BITMAP _src, _dst;
     byte _curStep=0;
